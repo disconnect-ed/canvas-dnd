@@ -2,6 +2,9 @@
 
 const saveFigures = document.querySelector('#save')
 const loadFigures = document.querySelector('#load')
+const expJson = document.querySelector('#export')
+const impJson = document.querySelector('#import')
+const clear = document.querySelector('#clear')
 
 // === BUTTONS ===
 
@@ -118,6 +121,25 @@ circle.addEventListener('dragend', e => {
 // === DRAG FIGURES METHODS ===
 
 // === METHODS ===
+
+const exportJson = () => {
+    const newJson = JSON.stringify(figures)
+    localStorage.setItem('jsonFile', newJson);
+}
+
+const importJson = () => {
+    figures.length = 0
+    const newData = JSON.parse(localStorage.getItem('jsonFile'))
+    newData.forEach(elem => {
+        if (elem.elemType === 'rect') {
+            figures.push(new Rect(elem.x, elem.y, elem.w, elem.h, elem.color, elem.elemType))
+        }
+        if (elem.elemType === 'circle') {
+            figures.push(new Circle((elem.x - elem.r), (elem.y - elem.r), elem.r, elem.sAngle, elem.eAngle,
+                elem.clockwise, elem.color, elem.elemType))
+        }
+    })
+}
 
 const drawFigure = (figure) => {
     ctx.fillStyle = figure.color
@@ -313,6 +335,20 @@ saveFigures.onclick = () => {
 
 loadFigures.onclick = () => {
     readData()
+}
+
+expJson.onclick = () => {
+    exportJson()
+}
+
+impJson.onclick = () => {
+    importJson()
+}
+
+clear.onclick = () => {
+    firebase.database().ref('figures/').set([])
+    figures.length = 0
+    localStorage.removeItem('jsonFile')
 }
 
 // === HANDLERS ===

@@ -52,6 +52,12 @@ body {
     &:hover {
       background-color: darken(#007fff, 15);
     }
+    &:last-child {
+      background-color: #ff6666;
+      &:hover {
+        background-color: darken(#ff6666, 15);
+      }
+    }
   }
 }
 
