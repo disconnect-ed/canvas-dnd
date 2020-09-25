@@ -1,3 +1,5 @@
+
+
 // === CANVAS ===
 
 const cnv = document.querySelector('#canvas')
@@ -132,9 +134,25 @@ const isCursorInFigure = function (figure) {
     }
 }
 
+const deleteFigure = (figure) => {
+    if (!figure) return
+    figures.pop()
+    selected = false
+    drag = false
+}
+
 // === METHODS ===
 
 // === HANDLERS ===
+
+window.onload = (e) => {
+    addEventListener('keydown', e => {
+        const keyCode = e.code
+        if (keyCode === 'Delete') {
+            deleteFigure(selected)
+        }
+    })
+}
 
 window.onmousemove = (e) => {
     mouse.x = e.pageX
