@@ -1,15 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Document</title>
-  <link rel="stylesheet" href="css/style.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Canvas DnD app</title>
+    <link rel="stylesheet" href="css/style.min.css">
 </head>
 <body>
-  
-  
-  <script src="js/main.js"></script>
+
+<div class="app">
+    <div class="figures-wrap">
+        <header>
+            <h3>Figures</h3>
+        </header>
+        <div class="figures">
+            <div id="block" class="figures-block"></div>
+            <div id="circle" class="figures-circle"></div>
+        </div>
+    </div>
+    <div class="canvas-wrap">
+        <header>
+            <h3>Canvas</h3>
+        </header>
+
+        <div class="canvas">
+            <canvas class="canvas" id='canvas'>
+            </canvas>
+        </div>
+    </div>
+    <aside class="menu">
+        <button id="save" class="menu-button">
+            Save canvas
+        </button>
+        <button id="load" class="menu-button">
+            Load canvas
+        </button>
+        <button id="clear" class="menu-button">
+            Clear canvas
+        </button>
+    </aside>
+</div>
+
+<script src="js/main.js"></script>
 </body>
 </html>
