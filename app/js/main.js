@@ -1,6 +1,3 @@
-
-
-
 // === CANVAS ===
 
 const cnv = document.querySelector('#canvas')
@@ -17,12 +14,20 @@ cnv.height = height
 // === DATA ===
 
 const figures = []
+
+// === DATA ===
+
+// === STATE ===
+
 const mouse = {
     x: 0,
     y: 0,
 }
 
-// === DATA ===
+let selected = false
+let drag = false
+
+// === STATE ===
 
 // === DRAG FIGURES ===
 
@@ -90,7 +95,6 @@ block.addEventListener('dragend', e => {
     if (elemBelow === cnv) {
         figures.push(new Rect((mouse.x - 25), (mouse.y - 25), 50, 50, 'gold', 'rect'))
     }
-    console.log(figures)
 })
 
 circle.addEventListener('dragend', e => {
@@ -99,7 +103,6 @@ circle.addEventListener('dragend', e => {
     if (elemBelow === cnv) {
         figures.push(new Circle((mouse.x - 25), (mouse.y - 25)))
     }
-    console.log(figures)
 })
 
 // === DRAG FIGURES METHODS ===
@@ -111,8 +114,47 @@ const drawFigure = (figure) => {
     figure.draw()
 }
 
+const isCursorInRect = function (rect) {
+    return mouse.x > (rect.x + cnvCoords.x) && mouse.x < (rect.x + rect.w + cnvCoords.x) &&
+        mouse.y > (rect.y + cnvCoords.y) && mouse.y < (rect.y + rect.h + cnvCoords.y)
+}
+
+const isCursorInCircle = function (circle) {
+    return mouse.x > (circle.x - circle.r + cnvCoords.x) && mouse.x < (circle.x + circle.r + cnvCoords.x) &&
+        mouse.y > (circle.y - circle.r + cnvCoords.y) && mouse.y < (circle.y + circle.r + cnvCoords.y)
+}
+
+const isCursorInFigure = function (figure) {
+    if (figure.elemType === 'rect') {
+        return isCursorInRect(figure)
+    } else if (figure.elemType === 'circle') {
+        return isCursorInCircle(figure)
+    }
+}
+
 // === METHODS ===
 
+// === HANDLERS ===
+
+window.onmousemove = (e) => {
+    mouse.x = e.pageX
+    mouse.y = e.pageY
+}
+
+window.onclick = () => {
+    selected = false
+    drag = false
+    const cursorOnFigures = figures.filter(item => isCursorInFigure(item))
+    const lastFigure = cursorOnFigures[cursorOnFigures.length - 1]
+    const selectFigureInd = figures.lastIndexOf(lastFigure)
+    if (selectFigureInd > -1) {
+        const selectedFigure = figures.splice(selectFigureInd, 1)
+        figures.push(selectedFigure[0])
+        selected = selectedFigure[0]
+    }
+}
+
+// === HANDLERS ===
 
 // === RENDER ===
 
@@ -121,9 +163,9 @@ setInterval(function (e) {
     ctx.clearRect(0, 0, width, height)
     for (let i in figures) {
         drawFigure(figures[i])
-        // if (figures[i] === selected) {
-        //     figures[i].stroke()
-        // }
+        if (figures[i] === selected) {
+            figures[i].stroke()
+        }
     }
     // if (drag.elemType === 'rect') {
     //     rectIsMoving(drag)
