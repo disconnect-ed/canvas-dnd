@@ -1,3 +1,9 @@
+// === BUTTONS ===
+
+const saveFigures = document.querySelector('#save')
+const loadFigures = document.querySelector('#load')
+
+// === BUTTONS ===
 
 
 // === CANVAS ===
@@ -299,6 +305,14 @@ cnv.onmousedown = (e) => {
 
 window.onmouseup = function (e) {
     drag = false
+}
+
+saveFigures.onclick = () => {
+    writeData()
+}
+
+loadFigures.onclick = () => {
+    readData()
 }
 
 // === HANDLERS ===
