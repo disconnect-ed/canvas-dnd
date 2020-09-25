@@ -96,6 +96,7 @@ block.addEventListener('dragend', e => {
     const elemBelow = document.elementFromPoint(e.clientX, e.clientY);
     if (elemBelow === cnv) {
         figures.push(new Rect((mouse.x - 25), (mouse.y - 25), 50, 50, 'gold', 'rect'))
+        isBorderOut(figures[figures.length - 1])
     }
 })
 
@@ -104,6 +105,7 @@ circle.addEventListener('dragend', e => {
     const elemBelow = document.elementFromPoint(e.clientX, e.clientY);
     if (elemBelow === cnv) {
         figures.push(new Circle((mouse.x - 25), (mouse.y - 25)))
+        isBorderOut(figures[figures.length - 1])
     }
 })
 
@@ -141,6 +143,119 @@ const deleteFigure = (figure) => {
     drag = false
 }
 
+const isBorderOut = (figure) => {
+    if (figure.elemType === 'rect') {
+        isRightBorderRectOut(figure)
+        isBottomBorderRectOut(figure)
+        isLeftBorderRectOut(figure)
+        isTopBorderRectOut(figure)
+    } else if (figure.elemType === 'circle') {
+        isRightBorderCircleOut(figure)
+        isBottomBorderCircleOut(figure)
+        isLeftBorderCircleOut(figure)
+        isTopBorderCircleOut(figure)
+    }
+}
+
+const isRightBorderRectOut = (figure) => {
+    if (((figure.x + figure.w) > cnv.width)) {
+        figure.x = cnv.width - figure.w - 1
+    }
+}
+
+const isBottomBorderRectOut = (figure) => {
+    if (((figure.y + figure.h) > cnv.height)) {
+        figure.y = cnv.height - figure.h - 1
+    }
+}
+
+const isLeftBorderRectOut = (figure) => {
+    if (figure.x <= 0) {
+        figure.x = 1
+    }
+}
+
+const isTopBorderRectOut = (figure) => {
+    if (figure.y <= 0) {
+        figure.y = 1
+    }
+}
+
+const isRightBorderCircleOut = (figure) => {
+    if (((figure.x + figure.r) > cnv.width)) {
+        figure.x = cnv.width - figure.r - 1
+    }
+}
+
+const isBottomBorderCircleOut = (figure) => {
+    if (((figure.y + figure.r) > cnv.height)) {
+        figure.y = cnv.height - figure.r - 1
+    }
+}
+
+const isLeftBorderCircleOut = (figure) => {
+    if ((figure.x - figure.r) <= 0) {
+        figure.x = figure.r + 1
+    }
+}
+
+const isTopBorderCircleOut = (figure) => {
+    if ((figure.y - figure.r) <= 0) {
+        figure.y = figure.r + 1
+    }
+}
+
+const rectIsMoving = () => {
+    if (((selected.x + selected.w) > cnv.width)) {
+        selected.x = cnv.width - selected.w - 1
+        drag = false
+        return
+    }
+    if (((selected.y + selected.h) > cnv.height)) {
+        selected.y = cnv.height - selected.w - 1
+        drag = false
+        return
+    }
+    if (((selected.x) < 0)) {
+        selected.x = 1
+        drag = false
+        return
+    }
+    if (((selected.y) < 0)) {
+        selected.y = 1
+        drag = false
+        return
+    }
+    selected.x = mouse.x - cnvCoords.x - drag.w / 2
+    selected.y = mouse.y - cnvCoords.y - selected.h / 2
+}
+
+const circleIsMoving = () => {
+    if (((selected.x + selected.r) > cnv.width)) {
+        selected.x = cnv.width - selected.r - 1
+        drag = false
+        return
+    }
+    if (((selected.y + selected.r) > cnv.height)) {
+        selected.y = cnv.height - selected.r - 1
+        drag = false
+        return
+    }
+    if (((selected.x - selected.r) < 0)) {
+        selected.x = selected.r + 1
+        drag = false
+        return
+    }
+    if (((selected.y - selected.r) < 0)) {
+        selected.y = selected.r + 1
+        drag = false
+        return
+    }
+    selected.x = mouse.x - cnvCoords.x
+    selected.y = mouse.y - cnvCoords.y
+}
+
+
 // === METHODS ===
 
 // === HANDLERS ===
@@ -159,7 +274,7 @@ window.onmousemove = (e) => {
     mouse.y = e.pageY
 }
 
-window.onclick = () => {
+cnv.onclick = () => {
     selected = false
     drag = false
     const cursorOnFigures = figures.filter(item => isCursorInFigure(item))
@@ -170,6 +285,20 @@ window.onclick = () => {
         figures.push(selectedFigure[0])
         selected = selectedFigure[0]
     }
+}
+
+cnv.onmousedown = (e) => {
+    if (selected) {
+        for (let i in figures) {
+            if (isCursorInFigure(figures[i]) && figures[i] === selected) {
+                drag = figures[i]
+            }
+        }
+    }
+}
+
+window.onmouseup = function (e) {
+    drag = false
 }
 
 // === HANDLERS ===
@@ -185,12 +314,12 @@ setInterval(function (e) {
             figures[i].stroke()
         }
     }
-    // if (drag.elemType === 'rect') {
-    //     rectIsMoving(drag)
-    // }
-    // if (drag.elemType === 'circle') {
-    //     circleIsMoving()
-    // }
-}, 1)
+    if (drag.elemType === 'rect') {
+        rectIsMoving(selected)
+    }
+    if (drag.elemType === 'circle') {
+        circleIsMoving()
+    }
+}, 15)
 
 // === RENDER ===
