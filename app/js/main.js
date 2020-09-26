@@ -122,14 +122,23 @@ circle.addEventListener('dragend', e => {
 
 // === METHODS ===
 
-const exportJson = () => {
+const exportJson = (e) => {
     const newJson = JSON.stringify(figures)
-    localStorage.setItem('jsonFile', newJson);
+    if (e.type === 'click') {
+        localStorage.setItem('localJsonFile', newJson);
+    } else {
+        sessionStorage.setItem('sessionJsonFile', newJson)
+    }
 }
 
-const importJson = () => {
+const importJson = (e) => {
     figures.length = 0
-    const newData = JSON.parse(localStorage.getItem('jsonFile'))
+    let newData = null
+    if (e.type === 'click') {
+        newData = JSON.parse(localStorage.getItem('localJsonFile'))
+    } else {
+        newData = JSON.parse(sessionStorage.getItem('sessionJsonFile'))
+    }
     newData.forEach(elem => {
         if (elem.elemType === 'rect') {
             figures.push(new Rect(elem.x, elem.y, elem.w, elem.h, elem.color, elem.elemType))
@@ -295,6 +304,11 @@ window.onload = (e) => {
             deleteFigure(selected)
         }
     })
+    importJson(e)
+}
+
+window.onbeforeunload = (e) => {
+    exportJson(e)
 }
 
 window.onmousemove = (e) => {
@@ -337,12 +351,12 @@ loadFigures.onclick = () => {
     readData()
 }
 
-expJson.onclick = () => {
-    exportJson()
+expJson.onclick = (e) => {
+    exportJson(e)
 }
 
-impJson.onclick = () => {
-    importJson()
+impJson.onclick = (e) => {
+    importJson(e)
 }
 
 clear.onclick = () => {
