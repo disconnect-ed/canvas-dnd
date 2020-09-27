@@ -36,7 +36,10 @@ const mouse = {
 }
 
 let selected = false
-let drag = false
+let dragOnCanvas = false
+let dragBehindCanvas = false
+let cloneIsCreated = false
+let selectedClone = null
 
 // === STATE ===
 
@@ -90,6 +93,11 @@ Circle.prototype = {
 
 const block = document.querySelector('#block')
 const circle = document.querySelector('#circle')
+const cloneBlock = document.querySelector('#block').cloneNode()
+const cloneCircle = document.querySelector('#circle').cloneNode()
+cloneBlock.style = 'position: fixed; opacity: 0.8;'
+cloneCircle.style = 'position: fixed; opacity: 0.8;'
+
 
 block.draggable = true
 circle.draggable = true
@@ -100,27 +108,37 @@ const cursorInCanvas = (e) => {
     mouse.y = e.pageY - targetCoords.y
 }
 
-block.addEventListener('dragend', e => {
-    cursorInCanvas(e)
+block.ondragend = e => {
+    const figure = 'rect'
     const elemBelow = document.elementFromPoint(e.clientX, e.clientY);
     if (elemBelow === cnv) {
-        figures.push(new Rect((mouse.x - 25), (mouse.y - 25), 50, 50, 'gold', 'rect'))
-        isBorderOut(figures[figures.length - 1])
+        addFigure(e, figure)
     }
-})
+}
 
-circle.addEventListener('dragend', e => {
+circle.ondragend = e => {
+    const figure = 'circle'
     cursorInCanvas(e)
     const elemBelow = document.elementFromPoint(e.clientX, e.clientY);
     if (elemBelow === cnv) {
-        figures.push(new Circle((mouse.x - 25), (mouse.y - 25)))
-        isBorderOut(figures[figures.length - 1])
+        addFigure(e, figure)
     }
-})
+}
 
 // === DRAG FIGURES METHODS ===
 
 // === METHODS ===
+
+const addFigure = (e, figure) => {
+    cursorInCanvas(e)
+    if (figure.elemType === 'rect' || figure === 'rect') {
+        figures.push(new Rect((mouse.x - 25), (mouse.y - 25), 50, 50, 'gold', 'rect'))
+        isBorderOut(figures[figures.length - 1])
+    } else if (figure.elemType === 'circle' || figure === 'circle') {
+        figures.push(new Circle((mouse.x - 25), (mouse.y - 25)))
+        isBorderOut(figures[figures.length - 1])
+    }
+}
 
 const exportJson = (e) => {
     const newJson = JSON.stringify(figures)
@@ -177,7 +195,22 @@ const deleteFigure = (figure) => {
     if (!figure) return
     figures.pop()
     selected = false
-    drag = false
+    dragOnCanvas = false
+}
+
+
+const figureMovingBehindCanvas = () => {
+    selected = false
+    const lastFigure = figures.pop()
+    if (!cloneIsCreated) {
+        cloneIsCreated = lastFigure.elemType
+        if (cloneIsCreated === 'rect') {
+            selectedClone = cloneBlock
+        } else if (cloneIsCreated === 'circle') {
+            selectedClone = cloneCircle
+        }
+        document.body.append(selectedClone)
+    }
 }
 
 const isBorderOut = (figure) => {
@@ -245,53 +278,58 @@ const isTopBorderCircleOut = (figure) => {
 const rectIsMoving = () => {
     if (((selected.x + selected.w) > cnv.width)) {
         selected.x = cnv.width - selected.w - 1
-        drag = false
+
+        dragOnCanvas = false
         return
     }
     if (((selected.y + selected.h) > cnv.height)) {
         selected.y = cnv.height - selected.w - 1
-        drag = false
+        dragOnCanvas = false
         return
     }
     if (((selected.x) < 0)) {
         selected.x = 1
-        drag = false
+        dragOnCanvas = false
         return
     }
     if (((selected.y) < 0)) {
         selected.y = 1
-        drag = false
+        dragOnCanvas = false
         return
     }
-    selected.x = mouse.x - cnvCoords.x - drag.w / 2
+    selected.x = mouse.x - cnvCoords.x - selected.w / 2
     selected.y = mouse.y - cnvCoords.y - selected.h / 2
 }
 
 const circleIsMoving = () => {
     if (((selected.x + selected.r) > cnv.width)) {
         selected.x = cnv.width - selected.r - 1
-        drag = false
+        dragOnCanvas = false
         return
     }
     if (((selected.y + selected.r) > cnv.height)) {
         selected.y = cnv.height - selected.r - 1
-        drag = false
+        dragOnCanvas = false
         return
     }
     if (((selected.x - selected.r) < 0)) {
         selected.x = selected.r + 1
-        drag = false
+        dragOnCanvas = false
         return
     }
     if (((selected.y - selected.r) < 0)) {
         selected.y = selected.r + 1
-        drag = false
+        dragOnCanvas = false
         return
     }
     selected.x = mouse.x - cnvCoords.x
     selected.y = mouse.y - cnvCoords.y
 }
 
+const cursorBehindCanvas = (cnvCoords) => {
+    return (mouse.x < cnvCoords.left || mouse.x > cnvCoords.right
+        || mouse.y < cnvCoords.top || mouse.y > cnvCoords.bottom)
+}
 
 // === METHODS ===
 
@@ -314,11 +352,17 @@ window.onbeforeunload = (e) => {
 window.onmousemove = (e) => {
     mouse.x = e.pageX
     mouse.y = e.pageY
+    const cursorIsBehindCanvas = cursorBehindCanvas(cnvCoords)
+    if (selected && !dragOnCanvas &&
+        dragBehindCanvas && cursorIsBehindCanvas) {
+        figureMovingBehindCanvas()
+    }
 }
 
 cnv.onclick = () => {
     selected = false
-    drag = false
+    dragOnCanvas = false
+    dragBehindCanvas = false
     const cursorOnFigures = figures.filter(item => isCursorInFigure(item))
     const lastFigure = cursorOnFigures[cursorOnFigures.length - 1]
     const selectFigureInd = figures.lastIndexOf(lastFigure)
@@ -329,18 +373,29 @@ cnv.onclick = () => {
     }
 }
 
-cnv.onmousedown = (e) => {
+cnv.onmousedown = () => {
     if (selected) {
         for (let i in figures) {
             if (isCursorInFigure(figures[i]) && figures[i] === selected) {
-                drag = figures[i]
+                dragOnCanvas = figures[i]
+                dragBehindCanvas = figures[i]
             }
         }
     }
 }
 
-window.onmouseup = function (e) {
-    drag = false
+window.onmouseup = (e) => {
+    dragOnCanvas = false
+    if (!cursorBehindCanvas(cnvCoords) && !dragOnCanvas
+        && dragBehindCanvas && !selected) {
+        addFigure(e, dragBehindCanvas)
+    }
+    dragBehindCanvas = false
+    if (selectedClone && cloneIsCreated) {
+        selectedClone.remove()
+        cloneIsCreated = false
+        selectedClone = false
+    }
 }
 
 saveFigures.onclick = () => {
@@ -369,7 +424,7 @@ clear.onclick = () => {
 
 // === RENDER ===
 
-setInterval(function (e) {
+setInterval(() => {
     cnvCoords = cnv.getBoundingClientRect()
     ctx.clearRect(0, 0, width, height)
     for (let i in figures) {
@@ -378,12 +433,15 @@ setInterval(function (e) {
             figures[i].stroke()
         }
     }
-    if (drag.elemType === 'rect') {
+    if (dragOnCanvas.elemType === 'rect') {
         rectIsMoving(selected)
-    }
-    if (drag.elemType === 'circle') {
+    } else if (dragOnCanvas.elemType === 'circle') {
         circleIsMoving()
     }
-}, 15)
+    if (selectedClone && dragBehindCanvas) {
+        selectedClone.style.left = `${mouse.x - 25}px`
+        selectedClone.style.top = `${mouse.y - 25}px`
+    }
+}, 20)
 
 // === RENDER ===
