@@ -45,43 +45,41 @@ let selectedClone = null
 
 // === DRAG FIGURES ===
 
-const Rect = function (x, y, w = 50, h = 50, color = 'gold', elemType = 'rect') {
-    this.x = x
-    this.y = y
-    this.w = w
-    this.h = h
-    this.color = color
-    this.elemType = elemType
-}
-
-const Circle = function (x, y, r = 25, sAngle = 0, eAngle = (2 * Math.PI), clockwise = false,
-                         color = 'lime', elemType = 'circle',) {
-    this.x = x + r
-    this.y = y + r
-    this.r = r
-    this.sAngle = sAngle
-    this.eAngle = eAngle
-    this.clockwise = clockwise
-    this.color = color
-    this.elemType = elemType
-}
-
-Rect.prototype = {
+class Rect {
+    constructor(x, y, w = 50, h = 50, color = 'gold', elemType = 'rect') {
+        this.x = x
+        this.y = y
+        this.w = w
+        this.h = h
+        this.color = color
+        this.elemType = elemType
+    }
     draw() {
         ctx.fillRect(this.x, this.y, this.w, this.h)
-    },
+    }
     stroke() {
         ctx.strokeRect(this.x, this.y, this.w, this.h)
     }
 }
 
-Circle.prototype = {
+class Circle {
+    constructor(x, y, r = 25, sAngle = 0, eAngle = (2 * Math.PI), clockwise = false,
+                color = 'lime', elemType = 'circle') {
+        this.x = x + r
+        this.y = y + r
+        this.r = r
+        this.sAngle = sAngle
+        this.eAngle = eAngle
+        this.clockwise = clockwise
+        this.color = color
+        this.elemType = elemType
+    }
     draw() {
         ctx.beginPath()
         ctx.arc(this.x, this.y, this.r, this.sAngle, this.eAngle, this.clockwise)
         ctx.fill()
         ctx.closePath()
-    },
+    }
     stroke() {
         ctx.stroke()
     }
